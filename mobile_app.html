@@ -47,7 +47,7 @@ html,body{height:100%;height:100dvh;font-family:-apple-system,BlinkMacSystemFont
 .pair-logo{width:88px;height:88px;border-radius:24px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;color:#fff;margin-bottom:28px;box-shadow:0 12px 40px rgba(29,78,216,.3)}
 .pair-title{font-size:24px;font-weight:700;margin-bottom:6px;letter-spacing:-.3px}
 .pair-sub{font-size:14px;color:var(--dim);margin-bottom:36px;line-height:1.6;max-width:300px}
-.pair-input{width:100%;max-width:340px;background:var(--input-bg);border:2px solid var(--border);color:var(--accent);font-size:11px;font-weight:600;text-align:center;letter-spacing:0.5px;padding:12px 10px;border-radius:var(--radius);outline:none;transition:border-color .2s;font-family:'SF Mono','Cascadia Code','Fira Code',monospace;word-break:break-all;line-height:1.35}
+.pair-input{width:100%;max-width:340px;min-height:88px;background:var(--input-bg);border:2px solid var(--border);color:var(--accent);font-size:11px;font-weight:600;text-align:left;letter-spacing:0;padding:12px 10px;border-radius:var(--radius);outline:none;transition:border-color .2s;font-family:'SF Mono','Cascadia Code','Fira Code',monospace;word-break:break-all;line-height:1.35;resize:vertical}
 .pair-input:focus{border-color:var(--blue)}
 .pair-input::placeholder{letter-spacing:0;font-weight:400;color:#333;font-size:14px;text-transform:none}
 .pair-btn{margin-top:20px;width:100%;max-width:300px;background:var(--grad);color:#fff;border:none;border-radius:var(--radius);padding:16px;font-size:16px;font-weight:700;cursor:pointer;transition:opacity .2s;box-shadow:0 4px 20px rgba(29,78,216,.25)}
@@ -211,13 +211,9 @@ html,body{height:100%;height:100dvh;font-family:-apple-system,BlinkMacSystemFont
 <div id="pairScreen" class="screen pair-screen">
   <div class="pair-logo">AI</div>
   <div class="pair-title">AI Agent</div>
-  <div class="pair-sub" id="pairSubText">Wpisz <b>kod parowania</b> (64 znaki: 0–9, A–F) z komputera — Dashboard, przycisk „Paruj telefon”. Max 3 telefony; nadmiar odłączysz na komputerze.</div>
-  <p class="pair-trust" id="pairTrustNote" style="display:none;font-size:12px;color:var(--cyan);max-width:340px;margin:0 auto 16px;line-height:1.45"></p>
-  <div id="pairApiAdvanced">
-  <p class="pair-api-hint" id="pairApiHint">Jeśli <b>nie</b> masz linku z dashboardu: wpisz adres HTTPS tunelu (bez <code>/mobile</code>) albo otwórz stronę agenta w tej samej sieci.</p>
-  <input id="pairApiBase" class="pair-api-input" type="url" inputmode="url" placeholder="https://adres tunelu (tylko gdy brak linku)" autocomplete="off" spellcheck="false" autocapitalize="off">
-  </div>
-  <input id="pairCode" class="pair-input" maxlength="64" placeholder="Wklej 64-znakowy kod z komputera" autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off">
+  <div class="pair-sub" id="pairSubText">Wklej <b>jedno pole</b> skopiowane na komputerze — Dashboard → Paruj telefon → zielony przycisk <b>„Kopiuj na telefon (jedno pole)”</b>. Bez linków i bez osobnego adresu tunelu.</div>
+  <p class="pair-trust" id="pairTrustNote" style="display:none;font-size:11px;color:var(--cyan);max-width:340px;margin:0 auto 12px;line-height:1.45"></p>
+  <textarea id="pairCode" class="pair-input" rows="4" placeholder="Wklej tutaj zawartość ze schowka (jeden długi ciąg z dashboardu)" autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
   <button id="pairBtn" class="pair-btn">Połącz</button>
   <div id="pairError" class="pair-error"></div>
 </div>
@@ -329,11 +325,7 @@ html,body{height:100%;height:100dvh;font-family:-apple-system,BlinkMacSystemFont
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">Ustawienia</div>
-    <div class="s-row" id="settingsApiRow" style="flex-direction:column;align-items:stretch;gap:8px;border-bottom:none;padding-bottom:4px">
-      <span class="s-lbl">URL serwera agenta</span>
-      <input id="sApiBase" class="pair-api-input" type="url" placeholder="https://…" style="max-width:none">
-      <span style="font-size:10px;color:var(--dim2);line-height:1.4">Tylko gdy aplikacja nie jest na tym samym hoście co agent. Zapis: opuszczenie pola.</span>
-    </div>
+    <button class="s-btn" id="btnClearServerMem" type="button">Wyczyść zapamiętany serwer (następnym razem wklej pakiet z komputera)</button>
     <div class="s-row"><span class="s-lbl">Status agenta</span><span class="s-val" id="sAgent">--</span></div>
     <div class="s-row"><span class="s-lbl">Model AI</span><select id="selModel" class="s-sel"><option value="auto">Auto (Ollama / Claude)</option><option value="ollama">Tylko Ollama</option><option value="claude">Tylko Claude</option></select></div>
     <div class="s-row"><span class="s-lbl">Głos TTS</span><select id="selVoice" class="s-sel"><option value="">Domyślny</option></select></div>
@@ -347,7 +339,7 @@ html,body{height:100%;height:100dvh;font-family:-apple-system,BlinkMacSystemFont
 
 <script>
 const $ = id => document.getElementById(id);
-const APP_BUILD = '20260325-3';
+const APP_BUILD = '20260325-4';
 
 function normalizeApiBase(raw) {
     const s = (raw || '').trim();
@@ -408,8 +400,22 @@ function needsRemoteApiBase() {
     return true;
 }
 
-function pairingNeedsManualUrl() {
-    return needsRemoteApiBase() && !getApiBase();
+function parsePairBundle(raw) {
+    const s = (raw || '').trim();
+    if (!s || s.length < 16) return null;
+    try {
+        let b = s.replace(/-/g, '+').replace(/_/g, '/');
+        const pad = b.length % 4;
+        if (pad) b += '===='.slice(0, 4 - pad);
+        const o = JSON.parse(atob(b));
+        if (!o || typeof o.a !== 'string' || typeof o.c !== 'string') return null;
+        const api = normalizeApiBase(o.a);
+        const c = String(o.c).toUpperCase().replace(/[^0-9A-F]/g, '');
+        if (!api || c.length !== 64) return null;
+        return { api, code: c };
+    } catch (e) {
+        return null;
+    }
 }
 
 function bakedApiBase() {
@@ -421,44 +427,20 @@ function bakedApiBase() {
 }
 
 function refreshPairingChrome() {
-    const adv = $('pairApiAdvanced');
     const trust = $('pairTrustNote');
-    const hint = $('pairApiHint');
     const sub = $('pairSubText');
-    const settingsRow = $('settingsApiRow');
-    if (pairingNeedsManualUrl()) {
-        if (adv) adv.style.display = '';
-        if (trust) trust.style.display = 'none';
-        if (sub) {
-            sub.innerHTML = 'Wpisz <b>kod</b> poniżej. Jeśli nie używasz <b>linku</b> z dashboardu, podaj też adres HTTPS tunelu w polu niżej.';
-        }
-        if (hint) hint.style.display = '';
-    } else {
-        if (adv) adv.style.display = 'none';
-        if (trust) {
+    if (trust) {
+        if (needsRemoteApiBase()) {
             trust.style.display = '';
-            const b = getApiBase();
-            trust.textContent = b
-                ? ('Łączenie z agentem: ' + b.replace(/^https?:\/\//, '').split('/')[0])
-                : 'Ta sama witryna co agent — wpisz tylko kod.';
-        }
-        if (sub) {
-            sub.innerHTML = 'Wpisz <b>kod parowania</b> (64 znaki) z komputera — Dashboard → Paruj telefon. Albo użyj <b>Skopiuj link</b> na komputerze (ustawi połączenie automatycznie).';
+            trust.textContent = 'Używasz aplikacji z internetu — wklej wyłącznie ciąg z zielonego przycisku na komputerze.';
+        } else {
+            trust.style.display = '';
+            trust.textContent = 'Ta sama sieć co agent — możesz wkleić pakiet z komputera albo sam 64-znakowy kod hex.';
         }
     }
-    if (settingsRow) {
-        settingsRow.style.display = bakedApiBase() ? 'none' : '';
+    if (sub) {
+        sub.innerHTML = 'Na komputerze: <b>Paruj telefon</b> → <b>Kopiuj na telefon (jedno pole)</b> → wklej tutaj → Połącz.';
     }
-}
-
-function persistApiBaseFromInputs() {
-    const fromPair = $('pairApiBase') ? normalizeApiBase($('pairApiBase').value) : '';
-    const use = fromPair || ($('sApiBase') ? normalizeApiBase($('sApiBase').value) : '');
-    try {
-        if (use) localStorage.setItem('aia_api_base', use);
-        else localStorage.removeItem('aia_api_base');
-    } catch (e) {}
-    return use;
 }
 
 async function api(path, opts = {}) {
@@ -501,37 +483,6 @@ function showScreen(id) {
 }
 
 /* ═══ INIT ═══ */
-(function syncApiBaseFields() {
-    try {
-        var b = localStorage.getItem('aia_api_base') || '';
-        if ($('pairApiBase')) $('pairApiBase').value = b;
-        if ($('sApiBase')) $('sApiBase').value = b;
-    } catch (e) {}
-})();
-if ($('pairApiBase')) {
-    $('pairApiBase').addEventListener('blur', function () {
-        var n = normalizeApiBase($('pairApiBase').value);
-        $('pairApiBase').value = n;
-        try {
-            if (n) localStorage.setItem('aia_api_base', n);
-            else localStorage.removeItem('aia_api_base');
-        } catch (e) {}
-        if ($('sApiBase')) $('sApiBase').value = n;
-        refreshPairingChrome();
-    });
-}
-if ($('sApiBase')) {
-    $('sApiBase').addEventListener('blur', function () {
-        var n = normalizeApiBase($('sApiBase').value);
-        $('sApiBase').value = n;
-        try {
-            if (n) localStorage.setItem('aia_api_base', n);
-            else localStorage.removeItem('aia_api_base');
-        } catch (e) {}
-        if ($('pairApiBase')) $('pairApiBase').value = n;
-        refreshPairingChrome();
-    });
-}
 
 if (token) { initApp(); } else { showScreen('pairScreen'); }
 refreshPairingChrome();
@@ -539,27 +490,41 @@ refreshPairingChrome();
 (function autoInvite() {
     if (token) return;
     const p = new URLSearchParams(location.search);
-    let c = (p.get('pair') || p.get('code') || '').toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 64);
-    if (!c) return;
-    $('pairCode').value = c;
+    const rawP = (p.get('pair') || p.get('code') || p.get('p') || '').trim();
+    if (!rawP) return;
+    const fromBundle = parsePairBundle(rawP);
+    if (fromBundle) {
+        try { localStorage.setItem('aia_api_base', fromBundle.api); } catch (e) {}
+        $('pairCode').value = fromBundle.code;
+    } else {
+        $('pairCode').value = rawP.toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 64);
+    }
     if (p.get('auto') === '1') setTimeout(doPair, 300);
 })();
 
 /* ═══ PAIRING ═══ */
 $('pairBtn').onclick = doPair;
-$('pairCode').onkeydown = e => { if (e.key === 'Enter') doPair(); };
-$('pairCode').oninput = function() { this.value = this.value.toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 64); };
+$('pairCode').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doPair(); } };
 
 async function doPair() {
-    const code = $('pairCode').value.trim().toUpperCase().replace(/[^0-9A-F]/g, '');
+    $('pairError').textContent = '';
+    const rawIn = $('pairCode').value.trim();
+    let code = '';
+    const bundle = parsePairBundle(rawIn);
+    if (bundle) {
+        try { localStorage.setItem('aia_api_base', bundle.api); } catch (e) {}
+        code = bundle.code;
+        $('pairCode').value = rawIn;
+    } else {
+        code = rawIn.toUpperCase().replace(/[^0-9A-F]/g, '');
+    }
     if (code.length !== 64) {
-        $('pairError').textContent = 'Kod musi mieć dokładnie 64 znaki (cyfry i A–F).';
+        $('pairError').textContent = 'Wklej dokładnie zawartość z przycisku „Kopiuj na telefon (jedno pole)” albo 64 znaki 0–9 A–F z komputera.';
         return;
     }
-    persistApiBaseFromInputs();
     const base = getApiBase();
-    if (pairingNeedsManualUrl()) {
-        $('pairError').textContent = 'Brak adresu agenta — otwórz link „Skopiuj z dashboardu” z komputera albo wpisz URL tunelu w polu zaawansowanym.';
+    if (needsRemoteApiBase() && !base) {
+        $('pairError').textContent = 'Brak danych połączenia — użyj zielonego „Kopiuj na telefon (jedno pole)” z dashboardu (nie samego krótkiego kodu).';
         return;
     }
     $('pairBtn').disabled = true;
@@ -577,9 +542,7 @@ async function doPair() {
             $('pairError').textContent = d.error || 'Nieprawidłowy kod';
         }
     } catch (e) {
-        $('pairError').textContent = pairingNeedsManualUrl()
-            ? 'Brak połączenia — użyj linku z dashboardu lub popraw URL tunelu.'
-            : 'Brak połączenia z serwerem (sprawdź tunel i kod).';
+        $('pairError').textContent = 'Brak połączenia z serwerem — sprawdź tunel na komputerze i wygeneruj nowy pakiet.';
     }
     $('pairBtn').disabled = false;
     $('pairBtn').textContent = 'Połącz';
@@ -1152,13 +1115,19 @@ $('apiKeyRemove').onclick = async () => {
 
 /* ═══ SETTINGS ═══ */
 $('btnSettings').onclick = () => {
-    try {
-        var b = localStorage.getItem('aia_api_base') || '';
-        if ($('sApiBase')) $('sApiBase').value = b;
-    } catch (e) {}
     refreshPairingChrome();
+    var csm = $('btnClearServerMem');
+    if (csm) csm.style.display = bakedApiBase() ? 'none' : 'block';
     $('settingsOvl').classList.add('on');
 };
+if ($('btnClearServerMem')) {
+    $('btnClearServerMem').onclick = function () {
+        try { localStorage.removeItem('aia_api_base'); } catch (e) {}
+        alert('Wyczyszczono. Przy następnym logowaniu wklej ponownie „jedno pole” z dashboardu.');
+        $('settingsOvl').classList.remove('on');
+        refreshPairingChrome();
+    };
+}
 $('btnCloseSettings').onclick = () => $('settingsOvl').classList.remove('on');
 $('settingsOvl').onclick = e => { if (e.target.id === 'settingsOvl') $('settingsOvl').classList.remove('on'); };
 $('btnClear').onclick = () => { if (confirm('Wyczyścić historię?')) { msgs = []; localStorage.setItem('aia_msgs', '[]'); renderMsgs(); $('settingsOvl').classList.remove('on'); } };
