@@ -1,0 +1,7 @@
+{
+  "name": "ai-agent-mobile-vercel",
+  "private": true,
+  "scripts": {
+    "build": "node build.mjs"
+  }
+}

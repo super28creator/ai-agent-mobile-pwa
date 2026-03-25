@@ -1,4 +1,14 @@
+# Vercel / Node
 node_modules/
+vercel/out/
 .vercel/
+
+# Lokalne / sekrety
 .env
+.env.local
 *.log
+
+# Python (jeśli cały folder trafia do jednego repo)
+__pycache__/
+*.pyc
+.venv/

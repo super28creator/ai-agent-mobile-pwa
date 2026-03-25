@@ -1,0 +1,10 @@
+{
+  "name": "ai-agent-mobile-pwa",
+  "private": true,
+  "scripts": {
+    "build": "node vercel/build.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

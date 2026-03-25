@@ -1,0 +1,64 @@
+================================================================================
+JEDEN PROJEKT NA VERCEL + GITHUB (bez duplikatów)
+================================================================================
+
+DLACZEGO BYŁO 3 PROJEKTÓW
+-------------------------
+• "ai-agent-mobile-pwa" i "vercel" — wdrożenia z komendy `npx vercel` (CLI).
+  Te projekty NIE są automatycznie z GitHubem; każdy deploy z CLI to osobny
+  projekt, jeśli kliknąłeś „nowy projekt”.
+• "ai-agent-mobile" — import z GitHuba; tu powinien zostać TYLKO TEN, podpięty
+  pod repo i auto-deploy z pusha.
+
+CO ZROBIĆ (kolejność)
+---------------------
+1) Vercel → Projects → usuń projekty, których nie potrzebujesz (np. "vercel"
+   i ewentualnie "ai-agent-mobile-pwa"), ZOSTAW JEDEN.
+
+   Opcja A — zostaw projekt PODPIĘTY pod Git ("ai-agent-mobile"):
+   • Settings → usuń błędne ustawienia, zrób Redeploy po pushu (patrz niżej).
+
+   Opcja B — zostaw "ai-agent-mobile-pwa" (działa pod znanym URL):
+   • Project → Settings → Git → Connect Git Repository → wybierz
+     super28creator/ai-agent-mobile (lub właściwe repo).
+   • Po połączeniu każdy push na wybraną gałąź = nowy deploy.
+
+2) W GITHUB musi być TEN SAM układ plików co lokalnie (root repo):
+   • package.json
+   • vercel.json
+   • mobile_app.html
+   • mobile_sw.js
+   • vercel/build.mjs
+   • vercel/icon-192.svg
+   • vercel/icon-512.svg
+   Bez tego build na Vercelu pada ("No Production Deployment" albo błąd ENOENT).
+
+3) Vercel → Project → Settings → General:
+   • Root Directory: (PUSTE) — całe repo, NIE podfolder "vercel".
+   • Production Branch: master lub main (tak jak w GitHub).
+
+4) Settings → Build & Deployment:
+   • Framework Preset: Other
+   • Build Command: npm run build  (nadpisuje vercel.json jeśli trzeba)
+   • Output Directory: vercel/out
+   • Install Command: npm install   (lub zostaw domyślne)
+
+5) Environment Variables (opcjonalnie):
+   • AIA_API_BASE = https://twoj-staly-tunel.pl
+   (wtedy na telefonie często wystarczy sam kod parowania)
+
+6) Po pushu: Deployments — sprawdź log. Sukces = zielony Production.
+
+================================================================================
+PUSH Z KOMPUTERA (przykład, jeśli repo już sklonowane)
+================================================================================
+  git add package.json vercel.json mobile_app.html mobile_sw.js vercel/
+  git commit -m "PWA: jeden build pod Vercel"
+  git push origin master
+
+================================================================================
+UWAGA
+================================================================================
+Nie wdrażaj z CLI (`npx vercel --prod`) do „nowego” projektu, jeśli chcesz
+tylko GitHub — wtedy znowu powstanie drugi projekt. Używaj wyłącznie pusha
+albo „Redeploy” w panelu.

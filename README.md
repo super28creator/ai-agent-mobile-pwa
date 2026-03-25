@@ -1,16 +1,15 @@
-# AI Agent — frontend mobilny (Vercel)
+# AI Agent — PWA (Vercel)
 
-Statyczna strona PWA. **Brak sekretów w repozytorium.**
+Statyczna PWA. **Brak sekretów w repozytorium.**
 
-- Backend (API, Ollama, Claude) działa na Twoim PC — `agent_dashboard.py` + tunel Cloudflare.
-- Tutaj jest tylko interfejs. Adres backendu wpisujesz w aplikacji (zapamiętywany w przeglądarce).
+- Backend działa na Twoim PC: `agent_dashboard.py` + tunel HTTPS.
+- **Build:** `npm run build` → wynik w `vercel/out` (skrypt `vercel/build.mjs` wstawia `mobile_app.html` + `api-base.js`).
+- Opcjonalnie w Vercel: zmienna **`AIA_API_BASE`** = origin tunelu — wtedy często wystarczy sam kod parowania.
 
-## Użycie
+## Deploy (Vercel + GitHub)
 
-1. Uruchom dashboard na PC, włącz tunel, skopiuj URL (np. `https://….trycloudflare.com`).
-2. Otwórz **stały** adres z Vercela na telefonie.
-3. Wklej URL tunelu w pole „Adres serwera”, wpisz kod parowania z dashboardu.
+- **Root Directory:** (puste, root repo)
+- **Build:** `npm run build`
+- **Output:** `vercel/out`
 
-## Deploy
-
-Projekt jest pod Vercel (statyczne pliki z katalogu `public/`).
+Po każdym `git push` na `master` Vercel robi nowy deploy (jeśli projekt jest podpięty do tego repo).

@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#09090b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta http-equiv="Cache-Control" content="no-cache">
+<script>
+(function () {
+    var p = location.pathname || '/';
+    window.__AIA_STATIC_BASE__ = (p === '/mobile' || p.indexOf('/mobile/') === 0) ? '/mobile' : '';
+})();
+</script>
+<link rel="manifest" href="" id="aiaManifestLink">
+<link rel="apple-touch-icon" href="" id="aiaAppleIconLink">
+<script>
+(function () {
+    var b = window.__AIA_STATIC_BASE__ || '';
+    var ml = document.getElementById('aiaManifestLink');
+    var al = document.getElementById('aiaAppleIconLink');
+    if (ml) ml.href = b + '/manifest.json?v=5';
+    if (al) al.href = b + '/icon-192.svg';
+})();
+</script>
+<title>AI Agent</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#09090b;--card:#111113;--card2:#161618;--border:#1e1e22;
+  --accent:#f0f0f0;--dim:#777;--dim2:#444;--green:#22c55e;
+  --red:#ef4444;--blue:#3b82f6;--purple:#a855f7;--cyan:#06b6d4;--yellow:#eab308;
+  --grad:linear-gradient(135deg,#1d4ed8,#7c3aed);
+  --msg-user:linear-gradient(135deg,#1d4ed8,#2563eb);
+  --msg-ai:#161618;--input-bg:#131315;
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+  --radius:14px;
+}
+html,body{height:100%;height:100dvh;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--accent);overflow:hidden;-webkit-text-size-adjust:100%}
+.screen{display:none;flex-direction:column;height:100dvh}
+.screen.active{display:flex}
+
+/* ═══ PAIRING ═══ */
+.pair-screen{justify-content:center;align-items:center;padding:40px 28px;text-align:center;background:radial-gradient(ellipse at 50% 30%,#12121a 0%,var(--bg) 70%)}
+.pair-logo{width:88px;height:88px;border-radius:24px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;color:#fff;margin-bottom:28px;box-shadow:0 12px 40px rgba(29,78,216,.3)}
+.pair-title{font-size:24px;font-weight:700;margin-bottom:6px;letter-spacing:-.3px}
+.pair-sub{font-size:14px;color:var(--dim);margin-bottom:36px;line-height:1.6;max-width:300px}
+.pair-input{width:100%;max-width:340px;background:var(--input-bg);border:2px solid var(--border);color:var(--accent);font-size:11px;font-weight:600;text-align:center;letter-spacing:0.5px;padding:12px 10px;border-radius:var(--radius);outline:none;transition:border-color .2s;font-family:'SF Mono','Cascadia Code','Fira Code',monospace;word-break:break-all;line-height:1.35}
+.pair-input:focus{border-color:var(--blue)}
+.pair-input::placeholder{letter-spacing:0;font-weight:400;color:#333;font-size:14px;text-transform:none}
+.pair-btn{margin-top:20px;width:100%;max-width:300px;background:var(--grad);color:#fff;border:none;border-radius:var(--radius);padding:16px;font-size:16px;font-weight:700;cursor:pointer;transition:opacity .2s;box-shadow:0 4px 20px rgba(29,78,216,.25)}
+.pair-btn:active{opacity:.7}
+.pair-btn:disabled{opacity:.4}
+.pair-error{color:var(--red);font-size:13px;margin-top:14px;min-height:20px}
+.pair-api-hint{font-size:11px;color:var(--dim2);margin:14px auto 8px;max-width:340px;line-height:1.45;text-align:left}
+.pair-api-input{width:100%;max-width:340px;background:var(--input-bg);border:1px solid var(--border);color:var(--accent);font-size:12px;padding:10px 12px;border-radius:10px;outline:none;font-family:inherit}
+.pair-api-input:focus{border-color:var(--blue)}
+.pair-trust code{font-size:10px;color:var(--dim)}
+
+/* ═══ HEADER ═══ */
+.app-header{padding:10px 16px;padding-top:calc(10px + var(--sat));background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.hdr-logo{width:34px;height:34px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff}
+.hdr-info .hdr-title{font-size:15px;font-weight:700;letter-spacing:-.2px}
+.hdr-info .hdr-status{font-size:10px;color:var(--dim);display:flex;align-items:center;gap:4px}
+.hdr-dot{width:6px;height:6px;border-radius:50%;background:var(--dim2);transition:background .3s}
+.hdr-dot.on{background:var(--green)}
+.hdr-actions{display:flex;gap:6px}
+.icon-btn{width:34px;height:34px;border-radius:10px;background:var(--input-bg);border:1px solid var(--border);color:var(--dim);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.icon-btn:active{background:var(--border);transform:scale(.92)}
+.icon-btn svg{width:16px;height:16px}
+
+/* ═══ TABS ═══ */
+.tab-bar{display:flex;background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0}
+.tab{flex:1;text-align:center;padding:10px 0;font-size:12px;font-weight:600;color:var(--dim2);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.3px;text-transform:uppercase}
+.tab.active{color:var(--accent);border-bottom-color:var(--blue)}
+.tab:active{background:rgba(255,255,255,.02)}
+.tab-content{flex:1;overflow:hidden;position:relative}
+.tab-pane{position:absolute;inset:0;display:none;flex-direction:column}
+.tab-pane.active{display:flex}
+
+/* ═══ CHAT ═══ */
+.chat-msgs{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px;-webkit-overflow-scrolling:touch}
+.welcome{text-align:center;color:var(--dim2);padding:80px 24px 40px;font-size:13px;line-height:2}
+.welcome b{color:var(--dim);font-weight:600}
+.msg{display:flex;flex-direction:column;margin-bottom:14px;max-width:82%;animation:fadeUp .2s ease-out}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.msg.user{margin-left:auto;align-items:flex-end}
+.msg.ai{align-items:flex-start}
+.bubble{padding:11px 15px;border-radius:18px;font-size:14px;line-height:1.6;word-break:break-word;white-space:pre-wrap}
+.msg.user .bubble{background:var(--msg-user);color:#fff;border-bottom-right-radius:4px}
+.msg.ai .bubble{background:var(--msg-ai);color:var(--accent);border:1px solid var(--border);border-bottom-left-radius:4px}
+.msg-meta{font-size:10px;color:var(--dim2);margin-top:3px;padding:0 4px;display:flex;align-items:center;gap:6px}
+.play-btn{background:none;border:none;color:var(--dim);font-size:10px;cursor:pointer;display:flex;align-items:center;gap:3px;padding:2px 6px;border-radius:6px;transition:all .15s}
+.play-btn:active{background:var(--border)}
+.play-btn.playing{color:var(--green)}
+.play-btn svg{width:12px;height:12px}
+
+.typing-ind{display:none;padding:0 16px 8px}
+.typing-ind.on{display:block}
+.typing-dots{display:inline-flex;gap:4px;padding:10px 14px;background:var(--msg-ai);border:1px solid var(--border);border-radius:18px;border-bottom-left-radius:4px}
+.typing-dots span{width:5px;height:5px;border-radius:50%;background:var(--dim2);animation:blink 1.4s infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,60%,100%{opacity:.25}30%{opacity:1}}
+
+/* ═══ INPUT ═══ */
+.input-area{padding:6px 10px;padding-bottom:calc(6px + var(--sab));background:var(--card);border-top:1px solid var(--border);flex-shrink:0}
+.rec-bar{display:none;padding:10px 14px;margin-bottom:6px;background:var(--input-bg);border:1px solid #3a1a1a;border-radius:var(--radius);transition:all .2s}
+.rec-bar.on{display:flex;align-items:center;gap:10px}
+.rec-pulse{width:10px;height:10px;border-radius:50%;background:var(--red);animation:pulse 1s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+.rec-time{font-size:11px;font-weight:700;color:var(--red);font-variant-numeric:tabular-nums;flex-shrink:0;min-width:36px}
+.rec-text{flex:1;font-size:13px;color:var(--accent);min-height:18px;line-height:1.4;max-height:80px;overflow-y:auto}
+.rec-stop{background:var(--red);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;transition:opacity .15s}
+.rec-stop:active{opacity:.7}
+.rec-send{background:var(--green);color:#000;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;display:none;transition:opacity .15s}
+.rec-send:active{opacity:.7}
+.input-row{display:flex;gap:6px;align-items:flex-end}
+.txt-input{flex:1;background:var(--input-bg);border:1px solid var(--border);color:var(--accent);font-size:15px;padding:10px 14px;border-radius:var(--radius);outline:none;resize:none;max-height:110px;min-height:42px;line-height:1.4;font-family:inherit;transition:border-color .2s}
+.txt-input:focus{border-color:var(--blue)}
+.txt-input::placeholder{color:var(--dim2)}
+.btn-r{width:42px;height:42px;border-radius:var(--radius);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s}
+.btn-r:active{transform:scale(.9)}
+.btn-r svg{width:18px;height:18px}
+.mic-btn{background:var(--input-bg);color:var(--dim);border:1px solid var(--border)}
+.mic-btn.rec{background:#3a1a1a;color:var(--red);border-color:var(--red)}
+.send-btn{background:var(--blue);color:#fff}
+.send-btn:disabled{opacity:.25}
+
+/* ═══ MAP ═══ */
+.map-pane{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 16px}
+.map-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.map-card-title{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);margin-bottom:12px;font-weight:700}
+.stat-row{display:flex;gap:10px;margin-bottom:14px}
+.stat-box{flex:1;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.stat-val{font-size:22px;font-weight:800;letter-spacing:-.5px}
+.stat-lbl{font-size:10px;color:var(--dim);margin-top:2px;text-transform:uppercase;letter-spacing:.3px}
+.node-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.node-item{display:flex;align-items:center;gap:10px;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.node-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0;background:var(--card)}
+.node-info{flex:1;min-width:0}
+.node-name{font-size:12px;font-weight:700}
+.node-sub{font-size:10px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.node-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.node-dot.ok{background:var(--green)}
+.node-dot.err{background:var(--red)}
+.node-dot.off{background:var(--dim2)}
+.edge-list{margin-top:12px}
+.edge-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--border);font-size:12px}
+.edge-row:first-child{border-top:none}
+.edge-arrow{color:var(--dim);font-size:10px}
+.edge-stat{margin-left:auto;font-size:11px;font-weight:600}
+.edge-stat.ok{color:var(--green)}
+.edge-stat.err{color:var(--red)}
+.graph-wrap{width:100%;overflow:hidden;border-radius:10px;background:var(--input-bg);border:1px solid var(--border)}
+#graphSvg{width:100%;height:auto;display:block}
+#graphSvg text{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif}
+@keyframes dashFlow{to{stroke-dashoffset:-16}}
+
+/* ═══ API TAB ═══ */
+.api-pane{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 16px;padding-bottom:calc(20px + var(--sab))}
+.api-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.api-card-title{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);margin-bottom:12px;font-weight:700}
+.api-info-box{background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;font-size:13px;line-height:1.7;color:var(--dim)}
+.api-info-box b{color:var(--accent);font-weight:600}
+.api-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
+.api-row:last-child{border-bottom:none}
+.api-lbl{font-size:13px;flex:1;min-width:0}
+.api-val{font-size:12px;font-weight:600;flex-shrink:0}
+.api-val.ok{color:var(--green)}
+.api-val.err{color:var(--red)}
+.api-val.warn{color:var(--yellow)}
+.api-val.off{color:var(--dim2)}
+.api-key-input{width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--accent);font-size:13px;padding:11px 14px;border-radius:10px;outline:none;font-family:'SF Mono',Menlo,monospace;transition:border-color .2s;margin-bottom:8px}
+.api-key-input:focus{border-color:var(--blue)}
+.api-key-input::placeholder{color:var(--dim2);font-family:inherit}
+.api-btn{width:100%;padding:12px;border-radius:10px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;margin-bottom:6px}
+.api-btn:active{opacity:.7;transform:scale(.98)}
+.api-btn.primary{background:var(--grad);color:#fff}
+.api-btn.secondary{background:var(--input-bg);color:var(--accent);border:1px solid var(--border)}
+.api-btn.danger{background:transparent;color:var(--red);border:1px solid #3a1a1a}
+.api-btn:disabled{opacity:.35;pointer-events:none}
+.api-result{font-size:12px;padding:10px;border-radius:8px;margin-top:8px;display:none;line-height:1.5}
+.api-result.show-ok{display:block;background:#0a2e14;color:var(--green);border:1px solid #164a26}
+.api-result.show-err{display:block;background:#2e0a0a;color:var(--red);border:1px solid #4a1616}
+.api-models{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.api-model-tag{background:var(--input-bg);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;color:var(--cyan)}
+
+/* ═══ SETTINGS ═══ */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.overlay.on{display:flex}
+.sheet{width:100%;max-width:480px;max-height:70dvh;background:var(--card);border-radius:20px 20px 0 0;padding:20px;padding-bottom:calc(20px + var(--sab));overflow-y:auto;animation:slideUp .25s ease-out}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 16px}
+.sheet-title{font-size:17px;font-weight:700;margin-bottom:14px;text-align:center}
+.s-row{padding:13px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.s-lbl{font-size:14px}
+.s-val{font-size:13px;color:var(--dim)}
+.s-sel{background:var(--input-bg);border:1px solid var(--border);color:var(--accent);padding:7px 10px;border-radius:8px;font-size:13px;outline:none;max-width:170px}
+.s-btn{width:100%;padding:13px;border-radius:var(--radius);border:1px solid var(--border);background:transparent;color:var(--accent);font-size:14px;font-weight:500;cursor:pointer;margin-top:10px;transition:all .15s}
+.s-btn:active{background:var(--border)}
+.s-btn.danger{color:var(--red);border-color:#3a1a1a}
+</style>
+</head>
+<body>
+
+<!-- ═══ PAIRING ═══ -->
+<div id="pairScreen" class="screen pair-screen">
+  <div class="pair-logo">AI</div>
+  <div class="pair-title">AI Agent</div>
+  <div class="pair-sub" id="pairSubText">Wpisz <b>kod parowania</b> (64 znaki: 0–9, A–F) z komputera — Dashboard, przycisk „Paruj telefon”. Max 3 telefony; nadmiar odłączysz na komputerze.</div>
+  <p class="pair-trust" id="pairTrustNote" style="display:none;font-size:12px;color:var(--cyan);max-width:340px;margin:0 auto 16px;line-height:1.45"></p>
+  <div id="pairApiAdvanced">
+  <p class="pair-api-hint" id="pairApiHint">Jeśli <b>nie</b> masz linku z dashboardu: wpisz adres HTTPS tunelu (bez <code>/mobile</code>) albo otwórz stronę agenta w tej samej sieci.</p>
+  <input id="pairApiBase" class="pair-api-input" type="url" inputmode="url" placeholder="https://adres tunelu (tylko gdy brak linku)" autocomplete="off" spellcheck="false" autocapitalize="off">
+  </div>
+  <input id="pairCode" class="pair-input" maxlength="64" placeholder="Wklej 64-znakowy kod z komputera" autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off">
+  <button id="pairBtn" class="pair-btn">Połącz</button>
+  <div id="pairError" class="pair-error"></div>
+</div>
+
+<!-- ═══ MAIN APP ═══ -->
+<div id="mainScreen" class="screen">
+  <div class="app-header">
+    <div class="hdr-left">
+      <div class="hdr-logo">AI</div>
+      <div class="hdr-info">
+        <div class="hdr-title">AI Agent</div>
+        <div class="hdr-status"><span class="hdr-dot" id="sDot"></span><span id="sTxt">Łączenie…</span></div>
+      </div>
+    </div>
+    <div class="hdr-actions">
+      <button class="icon-btn" id="btnSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab active" data-tab="chat">Chat</div>
+    <div class="tab" data-tab="map">Mapa</div>
+    <div class="tab" data-tab="api">API</div>
+  </div>
+
+  <div class="tab-content">
+    <!-- CHAT -->
+    <div class="tab-pane active" id="paneChat">
+      <div class="chat-msgs" id="chatMsgs">
+        <div class="welcome">Witaj!<br><b>Napisz</b> wiadomość lub naciśnij <b>mikrofon</b><br>aby podyktować polecenie.</div>
+      </div>
+      <div class="typing-ind" id="typingInd"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+      <div class="input-area">
+        <div class="rec-bar" id="recBar">
+          <div class="rec-pulse"></div>
+          <span class="rec-time" id="recTime">00:00</span>
+          <div class="rec-text" id="recText">Słucham…</div>
+          <button class="rec-send" id="recSend">Wyślij</button>
+          <button class="rec-stop" id="recStop">Stop</button>
+        </div>
+        <div class="input-row">
+          <textarea id="txtInput" class="txt-input" placeholder="Napisz wiadomość…" rows="1"></textarea>
+          <button class="btn-r mic-btn" id="micBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="1" width="6" height="14" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="21" x2="12" y2="17"/></svg></button>
+          <button class="btn-r send-btn" id="sendBtn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAP -->
+    <div class="tab-pane" id="paneMap">
+      <div class="map-pane" id="mapPane">
+        <div class="stat-row" id="mapStats"></div>
+        <div class="map-card">
+          <div class="map-card-title">Mapa połączeń</div>
+          <div class="graph-wrap" id="graphWrap">
+            <svg id="graphSvg" viewBox="0 0 360 400" preserveAspectRatio="xMidYMid meet"></svg>
+          </div>
+        </div>
+        <div class="map-card">
+          <div class="map-card-title">Węzły systemu</div>
+          <div class="node-grid" id="nodeGrid"></div>
+        </div>
+        <div class="map-card">
+          <div class="map-card-title">Połączenia</div>
+          <div class="edge-list" id="edgeList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- API -->
+    <div class="tab-pane" id="paneApi">
+      <div class="api-pane">
+        <div class="api-card">
+          <div class="api-card-title">Jak to działa</div>
+          <div class="api-info-box" id="apiInfoText">Ładowanie...</div>
+        </div>
+        <div class="api-card">
+          <div class="api-card-title">Status połączeń</div>
+          <div id="apiStatusRows">
+            <div class="api-row"><span class="api-lbl">Ollama (lokalne AI)</span><span class="api-val off" id="apiOllama">--</span></div>
+            <div class="api-row"><span class="api-lbl">Claude API (serwer)</span><span class="api-val off" id="apiClaudeServer">--</span></div>
+            <div class="api-row"><span class="api-lbl">Claude API (Twój klucz)</span><span class="api-val off" id="apiClaudeDevice">--</span></div>
+            <div class="api-row"><span class="api-lbl">Model Claude</span><span class="api-val" id="apiModelName" style="color:var(--cyan)">--</span></div>
+          </div>
+        </div>
+        <div class="api-card" id="apiOllamaCard" style="display:none">
+          <div class="api-card-title">Modele Ollama</div>
+          <div class="api-models" id="apiOllamaModels"></div>
+        </div>
+        <div class="api-card">
+          <div class="api-card-title">Twój klucz API Claude</div>
+          <div class="api-info-box">
+            Wpisz swój klucz Anthropic Claude, aby korzystać z AI nawet gdy serwer nie ma własnego klucza.<br>
+            <b>Klucz jest przechowywany na serwerze — tylko dla Twojego urządzenia.</b>
+          </div>
+          <input type="password" class="api-key-input" id="apiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false">
+          <button class="api-btn primary" id="apiKeySave">Zapisz i zweryfikuj klucz</button>
+          <button class="api-btn secondary" id="apiKeyTest">Testuj połączenie z Claude</button>
+          <button class="api-btn danger" id="apiKeyRemove" style="display:none">Usuń własny klucz</button>
+          <div class="api-result" id="apiKeyResult"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="overlay" id="settingsOvl">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Ustawienia</div>
+    <div class="s-row" id="settingsApiRow" style="flex-direction:column;align-items:stretch;gap:8px;border-bottom:none;padding-bottom:4px">
+      <span class="s-lbl">URL serwera agenta</span>
+      <input id="sApiBase" class="pair-api-input" type="url" placeholder="https://…" style="max-width:none">
+      <span style="font-size:10px;color:var(--dim2);line-height:1.4">Tylko gdy aplikacja nie jest na tym samym hoście co agent. Zapis: opuszczenie pola.</span>
+    </div>
+    <div class="s-row"><span class="s-lbl">Status agenta</span><span class="s-val" id="sAgent">--</span></div>
+    <div class="s-row"><span class="s-lbl">Model AI</span><select id="selModel" class="s-sel"><option value="auto">Auto (Ollama / Claude)</option><option value="ollama">Tylko Ollama</option><option value="claude">Tylko Claude</option></select></div>
+    <div class="s-row"><span class="s-lbl">Głos TTS</span><select id="selVoice" class="s-sel"><option value="">Domyślny</option></select></div>
+    <div class="s-row"><span class="s-lbl">Język rozpoznawania</span><select id="selLang" class="s-sel"><option value="pl-PL">Polski</option><option value="en-US">English</option></select></div>
+    <button class="s-btn" id="btnClear">Wyczyść historię</button>
+    <button class="s-btn" id="btnHardRefresh">Przeładuj aplikację (napraw Safari / cache)</button>
+    <button class="s-btn danger" id="btnUnpair">Odłącz telefon</button>
+    <button class="s-btn" id="btnCloseSettings">Zamknij</button>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const APP_BUILD = '20260325-3';
+
+function normalizeApiBase(raw) {
+    const s = (raw || '').trim();
+    if (!s) return '';
+    try {
+        const u = new URL(s.startsWith('http') ? s : 'https://' + s);
+        return u.origin;
+    } catch (e) {
+        return '';
+    }
+}
+
+function getApiBase() {
+    try {
+        const ls = localStorage.getItem('aia_api_base');
+        if (ls && ls.trim()) return normalizeApiBase(ls);
+    } catch (e) {}
+    try {
+        if (typeof window !== 'undefined' && window.__AIA_API_BASE__ !== undefined && window.__AIA_API_BASE__ !== null) {
+            const w = String(window.__AIA_API_BASE__).trim();
+            if (w) return normalizeApiBase(w);
+        }
+    } catch (e) {}
+    return '';
+}
+
+(function applyApiFromQuery() {
+    try {
+        const p = new URLSearchParams(location.search);
+        const api = p.get('api');
+        if (!api) return;
+        const n = normalizeApiBase(decodeURIComponent(api));
+        if (!n) return;
+        localStorage.setItem('aia_api_base', n);
+        p.delete('api');
+        const rest = p.toString();
+        const path = location.pathname || '/';
+        const next = path + (rest ? '?' + rest : '');
+        if (history.replaceState) history.replaceState({}, '', next || path);
+    } catch (e) {}
+})();
+
+function apiUrl(path) {
+    if (!path) return path;
+    if (/^https?:\/\//i.test(path)) return path;
+    const base = getApiBase();
+    const p = path.startsWith('/') ? path : '/' + path;
+    return base ? base + p : p;
+}
+
+/** True gdy aplikacja nie jest serwowana z tego samego hosta co typowy agent (localhost / LAN). */
+function needsRemoteApiBase() {
+    const h = location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1') return false;
+    if (/^192\.168\.\d{1,3}\.\d{1,3}$/.test(h)) return false;
+    if (/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(h)) return false;
+    if (/^172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}$/.test(h)) return false;
+    return true;
+}
+
+function pairingNeedsManualUrl() {
+    return needsRemoteApiBase() && !getApiBase();
+}
+
+function bakedApiBase() {
+    try {
+        const w = window.__AIA_API_BASE__;
+        if (w !== undefined && w !== null && String(w).trim()) return normalizeApiBase(String(w));
+    } catch (e) {}
+    return '';
+}
+
+function refreshPairingChrome() {
+    const adv = $('pairApiAdvanced');
+    const trust = $('pairTrustNote');
+    const hint = $('pairApiHint');
+    const sub = $('pairSubText');
+    const settingsRow = $('settingsApiRow');
+    if (pairingNeedsManualUrl()) {
+        if (adv) adv.style.display = '';
+        if (trust) trust.style.display = 'none';
+        if (sub) {
+            sub.innerHTML = 'Wpisz <b>kod</b> poniżej. Jeśli nie używasz <b>linku</b> z dashboardu, podaj też adres HTTPS tunelu w polu niżej.';
+        }
+        if (hint) hint.style.display = '';
+    } else {
+        if (adv) adv.style.display = 'none';
+        if (trust) {
+            trust.style.display = '';
+            const b = getApiBase();
+            trust.textContent = b
+                ? ('Łączenie z agentem: ' + b.replace(/^https?:\/\//, '').split('/')[0])
+                : 'Ta sama witryna co agent — wpisz tylko kod.';
+        }
+        if (sub) {
+            sub.innerHTML = 'Wpisz <b>kod parowania</b> (64 znaki) z komputera — Dashboard → Paruj telefon. Albo użyj <b>Skopiuj link</b> na komputerze (ustawi połączenie automatycznie).';
+        }
+    }
+    if (settingsRow) {
+        settingsRow.style.display = bakedApiBase() ? 'none' : '';
+    }
+}
+
+function persistApiBaseFromInputs() {
+    const fromPair = $('pairApiBase') ? normalizeApiBase($('pairApiBase').value) : '';
+    const use = fromPair || ($('sApiBase') ? normalizeApiBase($('sApiBase').value) : '');
+    try {
+        if (use) localStorage.setItem('aia_api_base', use);
+        else localStorage.removeItem('aia_api_base');
+    } catch (e) {}
+    return use;
+}
+
+async function api(path, opts = {}) {
+    const timeout = opts._timeout || 120000;
+    delete opts._timeout;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeout);
+    opts.signal = ctrl.signal;
+    const url = apiUrl(path);
+    try {
+        const r = await fetch(url, opts);
+        clearTimeout(timer);
+        return r;
+    } catch (e) {
+        clearTimeout(timer);
+        if (e.name === 'AbortError') throw new Error('Przekroczono czas oczekiwania (' + Math.round(timeout/1000) + 's)');
+        throw e;
+    }
+}
+
+let token = localStorage.getItem('aia_token');
+let msgs = JSON.parse(localStorage.getItem('aia_msgs') || '[]');
+let currentPlayIdx = null;
+let synth = window.speechSynthesis;
+let recognition = null;
+let isRecording = false;
+let recFinal = '';
+let recInterim = '';
+let recAccumulated = '';
+let recTimer = null;
+let recStartTime = 0;
+let selModel = localStorage.getItem('aia_model') || 'auto';
+let selVoice = localStorage.getItem('aia_voice') || '';
+let selLang = localStorage.getItem('aia_lang') || 'pl-PL';
+
+/* ═══ SCREENS ═══ */
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    $(id).classList.add('active');
+}
+
+/* ═══ INIT ═══ */
+(function syncApiBaseFields() {
+    try {
+        var b = localStorage.getItem('aia_api_base') || '';
+        if ($('pairApiBase')) $('pairApiBase').value = b;
+        if ($('sApiBase')) $('sApiBase').value = b;
+    } catch (e) {}
+})();
+if ($('pairApiBase')) {
+    $('pairApiBase').addEventListener('blur', function () {
+        var n = normalizeApiBase($('pairApiBase').value);
+        $('pairApiBase').value = n;
+        try {
+            if (n) localStorage.setItem('aia_api_base', n);
+            else localStorage.removeItem('aia_api_base');
+        } catch (e) {}
+        if ($('sApiBase')) $('sApiBase').value = n;
+        refreshPairingChrome();
+    });
+}
+if ($('sApiBase')) {
+    $('sApiBase').addEventListener('blur', function () {
+        var n = normalizeApiBase($('sApiBase').value);
+        $('sApiBase').value = n;
+        try {
+            if (n) localStorage.setItem('aia_api_base', n);
+            else localStorage.removeItem('aia_api_base');
+        } catch (e) {}
+        if ($('pairApiBase')) $('pairApiBase').value = n;
+        refreshPairingChrome();
+    });
+}
+
+if (token) { initApp(); } else { showScreen('pairScreen'); }
+refreshPairingChrome();
+
+(function autoInvite() {
+    if (token) return;
+    const p = new URLSearchParams(location.search);
+    let c = (p.get('pair') || p.get('code') || '').toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 64);
+    if (!c) return;
+    $('pairCode').value = c;
+    if (p.get('auto') === '1') setTimeout(doPair, 300);
+})();
+
+/* ═══ PAIRING ═══ */
+$('pairBtn').onclick = doPair;
+$('pairCode').onkeydown = e => { if (e.key === 'Enter') doPair(); };
+$('pairCode').oninput = function() { this.value = this.value.toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 64); };
+
+async function doPair() {
+    const code = $('pairCode').value.trim().toUpperCase().replace(/[^0-9A-F]/g, '');
+    if (code.length !== 64) {
+        $('pairError').textContent = 'Kod musi mieć dokładnie 64 znaki (cyfry i A–F).';
+        return;
+    }
+    persistApiBaseFromInputs();
+    const base = getApiBase();
+    if (pairingNeedsManualUrl()) {
+        $('pairError').textContent = 'Brak adresu agenta — otwórz link „Skopiuj z dashboardu” z komputera albo wpisz URL tunelu w polu zaawansowanym.';
+        return;
+    }
+    $('pairBtn').disabled = true;
+    $('pairBtn').textContent = 'Łączenie…';
+    $('pairError').textContent = '';
+    try {
+        const r = await api('/api/mobile/pair', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({code}), _timeout: 15000 });
+        const d = await r.json();
+        if (d.token) {
+            token = d.token;
+            localStorage.setItem('aia_token', token);
+            if (history.replaceState && location.search) history.replaceState({}, '', location.pathname || '/mobile');
+            initApp();
+        } else {
+            $('pairError').textContent = d.error || 'Nieprawidłowy kod';
+        }
+    } catch (e) {
+        $('pairError').textContent = pairingNeedsManualUrl()
+            ? 'Brak połączenia — użyj linku z dashboardu lub popraw URL tunelu.'
+            : 'Brak połączenia z serwerem (sprawdź tunel i kod).';
+    }
+    $('pairBtn').disabled = false;
+    $('pairBtn').textContent = 'Połącz';
+}
+
+/* ═══ APP INIT ═══ */
+function initApp() {
+    showScreen('mainScreen');
+    renderMsgs();
+    checkStatus();
+    setInterval(checkStatus, 8000);
+    loadMap();
+    setInterval(loadMap, 10000);
+    loadApiInfo();
+    loadVoices();
+    $('selModel').value = selModel;
+    $('selLang').value = selLang;
+    updateSendBtn();
+}
+
+/* ═══ TABS ═══ */
+const TAB_ID_MAP = {chat:'paneChat', map:'paneMap', api:'paneApi'};
+document.querySelectorAll('.tab').forEach(t => {
+    t.onclick = () => {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        const pane = TAB_ID_MAP[t.dataset.tab];
+        if (pane) $(pane).classList.add('active');
+        if (t.dataset.tab === 'api') loadApiInfo();
+    };
+});
+
+/* ═══ STATUS ═══ */
+async function checkStatus() {
+    try {
+        const r = await api('/api/mobile/status', { headers: {'Authorization': 'Bearer ' + token}, _timeout: 10000 });
+        if (r.status === 401) { logout(); return; }
+        const d = await r.json();
+        $('sDot').classList.toggle('on', !!d.agent_running);
+        $('sTxt').textContent = d.agent_running ? 'Agent aktywny' : 'AI gotowe';
+        $('sAgent').textContent = d.agent_running ? 'Aktywny (' + (d.mode || '?') + ')' : 'Standby';
+    } catch { $('sTxt').textContent = 'Brak połączenia'; }
+}
+
+/* ═══ MESSAGES ═══ */
+function esc(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderMsgs() {
+    const c = $('chatMsgs');
+    if (!msgs.length) {
+        c.innerHTML = '<div class="welcome">Witaj!<br><b>Napisz</b> wiadomość lub naciśnij <b>mikrofon</b><br>aby podyktować polecenie.</div>';
+        return;
+    }
+    c.innerHTML = msgs.map((m, i) => {
+        const cls = m.role === 'user' ? 'user' : 'ai';
+        const t = new Date(m.ts).toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'});
+        let play = '';
+        if (m.role === 'assistant') {
+            const isPlaying = currentPlayIdx === i;
+            const icon = isPlaying
+                ? '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>'
+                : '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>';
+            play = '<button class="play-btn' + (isPlaying ? ' playing' : '') + '" onclick="toggleTTS(' + i + ')">' + icon + (isPlaying ? 'Stop' : 'Odsłuchaj') + '</button>';
+        }
+        return '<div class="msg ' + cls + '"><div class="bubble">' + esc(m.content) + '</div><div class="msg-meta"><span>' + t + '</span>' + play + '</div></div>';
+    }).join('');
+    requestAnimationFrame(() => { c.scrollTop = c.scrollHeight; });
+}
+
+function addMsg(role, content) {
+    msgs.push({role, content, ts: new Date().toISOString()});
+    localStorage.setItem('aia_msgs', JSON.stringify(msgs));
+    renderMsgs();
+}
+
+/* ═══ SEND ═══ */
+function sanitize(text) {
+    return text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+async function sendPrompt(text) {
+    text = sanitize(text);
+    if (!text) return;
+    addMsg('user', text);
+    $('txtInput').value = '';
+    $('txtInput').style.height = 'auto';
+    updateSendBtn();
+    $('sendBtn').disabled = true;
+    $('typingInd').classList.add('on');
+    scrollChat();
+
+    let lastErr = '';
+    for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+            const hist = msgs.filter(m => m.role === 'user' || m.role === 'assistant').slice(-20);
+            const r = await api('/api/mobile/prompt', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token},
+                body: JSON.stringify({prompt: text, model: selModel, history: hist}),
+                _timeout: 120000
+            });
+            if (r.status === 401) { logout(); return; }
+            const d = await r.json();
+            addMsg('assistant', d.response || d.error || 'Brak odpowiedzi');
+            lastErr = '';
+            break;
+        } catch (e) {
+            lastErr = e.message || 'Nieznany błąd';
+            if (attempt === 0) await new Promise(ok => setTimeout(ok, 1500));
+        }
+    }
+    if (lastErr) addMsg('assistant', 'Błąd połączenia: ' + lastErr);
+    $('sendBtn').disabled = false;
+    $('typingInd').classList.remove('on');
+    updateSendBtn();
+    scrollChat();
+}
+
+function scrollChat() { requestAnimationFrame(() => { $('chatMsgs').scrollTop = $('chatMsgs').scrollHeight; }); }
+
+function updateSendBtn() { $('sendBtn').disabled = !$('txtInput').value.trim(); }
+
+$('sendBtn').onclick = () => sendPrompt($('txtInput').value);
+$('txtInput').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendPrompt(e.target.value); } };
+$('txtInput').oninput = function() { this.style.height = 'auto'; this.style.height = Math.min(this.scrollHeight, 110) + 'px'; updateSendBtn(); };
+
+/* ═══ TTS ═══ */
+function toggleTTS(idx) {
+    const wasPlaying = currentPlayIdx === idx;
+    synth.cancel();
+    currentPlayIdx = null;
+    if (wasPlaying) { renderMsgs(); return; }
+
+    const u = new SpeechSynthesisUtterance(msgs[idx].content);
+    u.lang = selLang.startsWith('pl') ? 'pl-PL' : 'en-US';
+    if (selVoice) { const v = synth.getVoices().find(x => x.name === selVoice); if (v) u.voice = v; }
+    u.onend = u.onerror = () => { currentPlayIdx = null; renderMsgs(); };
+    currentPlayIdx = idx;
+    renderMsgs();
+    synth.speak(u);
+}
+
+function loadVoices() {
+    const voices = synth.getVoices();
+    const sel = $('selVoice');
+    if (!voices.length) return;
+    sel.innerHTML = '<option value="">Domyślny</option>' +
+        voices.filter(v => v.lang.startsWith('pl') || v.lang.startsWith('en'))
+            .map(v => '<option value="' + v.name + '"' + (v.name === selVoice ? ' selected' : '') + '>' + v.name.slice(0, 28) + ' (' + v.lang + ')</option>').join('');
+}
+synth.onvoiceschanged = loadVoices;
+
+/* ═══ SPEECH RECOGNITION ═══ */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SR) {
+    recognition = new SR();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+    recognition.lang = selLang;
+
+    recognition.onresult = e => {
+        let interim = '';
+        let sessionFinal = '';
+        for (let i = 0; i < e.results.length; i++) {
+            if (e.results[i].isFinal) sessionFinal += e.results[i][0].transcript;
+            else interim += e.results[i][0].transcript;
+        }
+        recFinal = sessionFinal;
+        recInterim = interim;
+        const full = (recAccumulated + ' ' + recFinal + (recInterim ? ' ' + recInterim : '')).trim();
+        $('recText').textContent = full || 'Słucham…';
+        const hasText = full.length > 0;
+        $('recSend').style.display = hasText ? 'block' : 'none';
+    };
+
+    recognition.onend = () => {
+        if (isRecording) {
+            const bestText = recFinal.trim() || recInterim.trim();
+            if (bestText) {
+                recAccumulated = (recAccumulated + ' ' + bestText).trim();
+            }
+            recFinal = '';
+            recInterim = '';
+            $('recSend').style.display = recAccumulated.trim() ? 'block' : 'none';
+            setTimeout(() => {
+                if (isRecording) {
+                    try { recognition.start(); } catch {}
+                }
+            }, 150);
+        }
+    };
+
+    recognition.onerror = e => {
+        if (e.error === 'not-allowed' || e.error === 'audio-capture') {
+            $('recText').textContent = 'Brak dostępu do mikrofonu (wymaga HTTPS).';
+            setTimeout(stopRecording, 2000);
+        } else if (e.error === 'no-speech') {
+            /* silence — onend will restart */
+        } else if (e.error === 'network') {
+            $('recText').textContent = 'Błąd sieci — spróbuj ponownie';
+            setTimeout(stopRecording, 2000);
+        } else if (e.error === 'aborted') {
+            /* aborted — normal on restart */
+        }
+    };
+}
+
+function formatRecTime(ms) {
+    const s = Math.floor(ms / 1000);
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
+function updateRecTimer() {
+    if (!isRecording) return;
+    const elapsed = Date.now() - recStartTime;
+    $('recTime').textContent = formatRecTime(elapsed);
+}
+
+function getFullRecText() {
+    return (recAccumulated + ' ' + recFinal + ' ' + recInterim).replace(/\s+/g, ' ').trim();
+}
+
+function startRecording() {
+    if (!recognition) { alert('Rozpoznawanie mowy niedostępne.\nWymagane HTTPS lub Chrome.'); return; }
+    isRecording = true;
+    recFinal = '';
+    recInterim = '';
+    recAccumulated = '';
+    recStartTime = Date.now();
+    recognition.lang = selLang;
+    $('recText').textContent = 'Słucham…';
+    $('recBar').classList.add('on');
+    $('recSend').style.display = 'none';
+    $('micBtn').classList.add('rec');
+    if (recTimer) clearInterval(recTimer);
+    recTimer = setInterval(updateRecTimer, 1000);
+    updateRecTimer();
+    try { recognition.start(); } catch { stopRecording(); }
+}
+
+function stopRecording() {
+    isRecording = false;
+    if (recTimer) { clearInterval(recTimer); recTimer = null; }
+    try { recognition.stop(); } catch {}
+    $('micBtn').classList.remove('rec');
+    $('recBar').classList.remove('on');
+    const text = getFullRecText();
+    if (text) {
+        $('txtInput').value = text;
+        $('txtInput').dispatchEvent(new Event('input'));
+    }
+    recFinal = '';
+    recInterim = '';
+    recAccumulated = '';
+}
+
+function sendRecording() {
+    isRecording = false;
+    if (recTimer) { clearInterval(recTimer); recTimer = null; }
+    try { recognition.stop(); } catch {}
+    $('micBtn').classList.remove('rec');
+    $('recBar').classList.remove('on');
+    const text = getFullRecText();
+    recFinal = '';
+    recInterim = '';
+    recAccumulated = '';
+    if (text) sendPrompt(text);
+}
+
+$('micBtn').onclick = () => { isRecording ? stopRecording() : startRecording(); };
+$('recStop').onclick = stopRecording;
+$('recSend').onclick = sendRecording;
+
+/* ═══ MAP ═══ */
+const NODES = [
+    {id:'notion',     label:'Notion',     icon:'N',  color:'#22c55e', x:55,  y:50},
+    {id:'agent',      label:'Agent',      icon:'AI', color:'#3b82f6', x:180, y:50},
+    {id:'mobile',     label:'Mobile',     icon:'M',  color:'#a855f7', x:305, y:50},
+    {id:'router',     label:'Router',     icon:'R',  color:'#a855f7', x:180, y:155},
+    {id:'claude',     label:'Claude',     icon:'C',  color:'#06b6d4', x:55,  y:260},
+    {id:'ollama',     label:'Ollama',     icon:'O',  color:'#eab308', x:180, y:260},
+    {id:'cursor',     label:'Cursor',     icon:'CR', color:'#ef4444', x:305, y:260},
+    {id:'foundry',    label:'Foundry',    icon:'F',  color:'#22c55e', x:235, y:365},
+    {id:'filesystem', label:'Files',      icon:'FS', color:'#3b82f6', x:110, y:365},
+];
+const EDGES = [
+    {from:'notion', to:'agent'},
+    {from:'agent', to:'mobile'},
+    {from:'agent', to:'router'},
+    {from:'router', to:'claude'},
+    {from:'router', to:'ollama'},
+    {from:'router', to:'cursor'},
+    {from:'cursor', to:'foundry'},
+    {from:'cursor', to:'filesystem'},
+    {from:'claude', to:'filesystem'},
+];
+const NODE_R = 22;
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const STATE_COLORS = {ok:'#22c55e', err:'#ef4444', off:'#333'};
+
+function renderGraph(nodeStates) {
+    const svg = $('graphSvg');
+    svg.innerHTML = '';
+
+    const defs = document.createElementNS(SVG_NS, 'defs');
+    const glow = document.createElementNS(SVG_NS, 'filter');
+    glow.setAttribute('id', 'glow');
+    glow.innerHTML = '<feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>';
+    defs.appendChild(glow);
+
+    const arrow = document.createElementNS(SVG_NS, 'marker');
+    arrow.setAttribute('id', 'arrowOk');
+    arrow.setAttribute('markerWidth', '8');
+    arrow.setAttribute('markerHeight', '6');
+    arrow.setAttribute('refX', '8');
+    arrow.setAttribute('refY', '3');
+    arrow.setAttribute('orient', 'auto');
+    arrow.innerHTML = '<path d="M0,0 L8,3 L0,6" fill="#22c55e" opacity="0.6"/>';
+    defs.appendChild(arrow);
+    const arrowOff = arrow.cloneNode(true);
+    arrowOff.setAttribute('id', 'arrowOff');
+    arrowOff.querySelector('path').setAttribute('fill', '#333');
+    defs.appendChild(arrowOff);
+    const arrowErr = arrow.cloneNode(true);
+    arrowErr.setAttribute('id', 'arrowErr');
+    arrowErr.querySelector('path').setAttribute('fill', '#ef4444');
+    defs.appendChild(arrowErr);
+    svg.appendChild(defs);
+
+    const nodeMap = {};
+    NODES.forEach(n => { nodeMap[n.id] = n; });
+
+    EDGES.forEach(e => {
+        const a = nodeMap[e.from], b = nodeMap[e.to];
+        if (!a || !b) return;
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist === 0) return;
+        const ux = dx/dist, uy = dy/dist;
+        const x1 = a.x + ux*(NODE_R+4), y1 = a.y + uy*(NODE_R+4);
+        const x2 = b.x - ux*(NODE_R+8), y2 = b.y - uy*(NODE_R+8);
+
+        const fromSt = nodeStates[e.from] || 'off';
+        const toSt = nodeStates[e.to] || 'off';
+        const edgeOk = (fromSt === 'ok' && toSt === 'ok');
+        const edgeErr = (fromSt === 'err' || toSt === 'err');
+        const color = edgeErr ? '#ef4444' : edgeOk ? '#22c55e' : '#333';
+        const markerId = edgeErr ? 'arrowErr' : edgeOk ? 'arrowOk' : 'arrowOff';
+
+        const line = document.createElementNS(SVG_NS, 'line');
+        line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+        line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+        line.setAttribute('stroke', color);
+        line.setAttribute('stroke-width', edgeOk ? '2.5' : '1.5');
+        line.setAttribute('stroke-linecap', 'round');
+        line.setAttribute('marker-end', 'url(#'+markerId+')');
+        if (edgeOk) {
+            line.setAttribute('stroke-dasharray', '6 10');
+            line.style.animation = 'dashFlow 1.2s linear infinite';
+        } else {
+            line.setAttribute('opacity', '0.4');
+        }
+        svg.appendChild(line);
+    });
+
+    NODES.forEach(n => {
+        const st = nodeStates[n.id] || 'off';
+        const g = document.createElementNS(SVG_NS, 'g');
+        g.setAttribute('transform', 'translate('+n.x+','+n.y+')');
+
+        if (st === 'ok') {
+            const halo = document.createElementNS(SVG_NS, 'circle');
+            halo.setAttribute('r', NODE_R + 5);
+            halo.setAttribute('fill', 'none');
+            halo.setAttribute('stroke', n.color);
+            halo.setAttribute('stroke-width', '1');
+            halo.setAttribute('opacity', '0.25');
+            g.appendChild(halo);
+        }
+
+        const bg = document.createElementNS(SVG_NS, 'circle');
+        bg.setAttribute('r', NODE_R);
+        bg.setAttribute('fill', st === 'ok' ? n.color : '#1a1a1e');
+        bg.setAttribute('stroke', st === 'ok' ? n.color : st === 'err' ? '#ef4444' : '#333');
+        bg.setAttribute('stroke-width', '2');
+        if (st === 'ok') bg.setAttribute('filter', 'url(#glow)');
+        g.appendChild(bg);
+
+        const txt = document.createElementNS(SVG_NS, 'text');
+        txt.setAttribute('text-anchor', 'middle');
+        txt.setAttribute('dy', '0.35em');
+        txt.setAttribute('fill', st === 'ok' ? '#fff' : '#666');
+        txt.setAttribute('font-size', '11');
+        txt.setAttribute('font-weight', '800');
+        txt.textContent = n.icon;
+        g.appendChild(txt);
+
+        const lbl = document.createElementNS(SVG_NS, 'text');
+        lbl.setAttribute('text-anchor', 'middle');
+        lbl.setAttribute('y', NODE_R + 14);
+        lbl.setAttribute('fill', st === 'ok' ? '#ccc' : '#555');
+        lbl.setAttribute('font-size', '10');
+        lbl.setAttribute('font-weight', '600');
+        lbl.textContent = n.label;
+        g.appendChild(lbl);
+
+        const dot = document.createElementNS(SVG_NS, 'circle');
+        dot.setAttribute('cx', NODE_R - 4);
+        dot.setAttribute('cy', -(NODE_R - 4));
+        dot.setAttribute('r', '4');
+        dot.setAttribute('fill', STATE_COLORS[st] || '#333');
+        g.appendChild(dot);
+
+        svg.appendChild(g);
+    });
+}
+
+async function loadMap() {
+    try {
+        const [status, events] = await Promise.all([
+            api('/api/status', {_timeout: 8000}).then(r => r.json()).catch(() => null),
+            api('/api/events?last=100', {_timeout: 8000}).then(r => r.json()).catch(() => []),
+        ]);
+
+        const connByNode = {};
+        (events || []).forEach(e => {
+            if (e.type !== 'connection') return;
+            [e.src, e.dst].forEach(n => {
+                if (!n || n === 'agent') return;
+                if (!connByNode[n] || new Date(e.ts) > new Date(connByNode[n].ts)) connByNode[n] = e;
+            });
+        });
+
+        const connStats = {};
+        (events || []).filter(e => e.type === 'connection').forEach(e => {
+            const k = (e.src || '?') + ' → ' + (e.dst || '?');
+            if (!connStats[k]) connStats[k] = {ok: 0, err: 0};
+            if (e.status === 'ok') connStats[k].ok++; else connStats[k].err++;
+        });
+
+        const staleMs = 600000;
+        const now = Date.now();
+        const nodeStates = {};
+        NODES.forEach(n => {
+            const ev = connByNode[n.id];
+            if (n.id === 'agent') {
+                nodeStates[n.id] = status && status.running ? 'ok' : 'off';
+            } else if (n.id === 'router') {
+                nodeStates[n.id] = status && status.running ? 'ok' : 'off';
+            } else if (n.id === 'mobile') {
+                nodeStates[n.id] = token ? 'ok' : 'off';
+            } else if (ev && (now - new Date(ev.ts).getTime()) < staleMs) {
+                nodeStates[n.id] = ev.status === 'ok' ? 'ok' : 'err';
+            } else {
+                nodeStates[n.id] = 'off';
+            }
+        });
+
+        renderGraph(nodeStates);
+
+        $('mapStats').innerHTML =
+            '<div class="stat-box"><div class="stat-val">' + ((status && status.running) ? (status.mode || 'ON').toUpperCase() : 'OFF') + '</div><div class="stat-lbl">Status</div></div>' +
+            '<div class="stat-box"><div class="stat-val">' + ((status && status.total_tasks_done) || 0) + '</div><div class="stat-lbl">Zadania</div></div>' +
+            '<div class="stat-box"><div class="stat-val">' + (events ? events.length : 0) + '</div><div class="stat-lbl">Zdarzenia</div></div>';
+
+        $('nodeGrid').innerHTML = NODES.map(n => {
+            const st = nodeStates[n.id] || 'off';
+            const sub = connByNode[n.id] ? connByNode[n.id].detail || connByNode[n.id].status || '' : (n.id === 'agent' ? (status && status.pid ? 'PID ' + status.pid : '') : '');
+            return '<div class="node-item"><div class="node-icon" style="background:' + n.color + '">' + n.icon + '</div><div class="node-info"><div class="node-name">' + n.label + '</div><div class="node-sub">' + esc(sub || (st === 'ok' ? 'Połączony' : st === 'err' ? 'Błąd' : 'Oczekuje')) + '</div></div><div class="node-dot ' + st + '"></div></div>';
+        }).join('');
+
+        $('edgeList').innerHTML = EDGES.map(e => {
+            const k = e.from + ' → ' + e.to;
+            const s = connStats[k];
+            return '<div class="edge-row"><span>' + e.from + '</span><span class="edge-arrow">→</span><span>' + e.to + '</span>' +
+                (s ? '<span class="edge-stat ok">' + s.ok + ' ok</span>' + (s.err ? '<span class="edge-stat err">' + s.err + ' err</span>' : '') : '<span class="edge-stat" style="color:var(--dim2)">—</span>') +
+                '</div>';
+        }).join('');
+    } catch {}
+}
+
+/* ═══ API TAB ═══ */
+async function loadApiInfo() {
+    try {
+        const r = await api('/api/mobile/apikey', {headers:{'Authorization':'Bearer '+token}, _timeout: 10000});
+        if (r.status === 401) { logout(); return; }
+        const d = await r.json();
+        $('apiInfoText').innerHTML = d.info || '';
+        $('apiOllama').textContent = d.ollama_online ? 'Online' : 'Offline';
+        $('apiOllama').className = 'api-val ' + (d.ollama_online ? 'ok' : 'off');
+        $('apiClaudeServer').textContent = d.has_server_key ? 'Skonfigurowany' : 'Brak klucza';
+        $('apiClaudeServer').className = 'api-val ' + (d.has_server_key ? 'ok' : 'off');
+        $('apiClaudeDevice').textContent = d.has_device_key ? ('Aktywny ' + d.device_key_preview) : 'Nie ustawiony';
+        $('apiClaudeDevice').className = 'api-val ' + (d.has_device_key ? 'ok' : 'off');
+        $('apiModelName').textContent = d.claude_model || '--';
+        $('apiKeyRemove').style.display = d.has_device_key ? 'block' : 'none';
+        if (d.ollama_models && d.ollama_models.length) {
+            $('apiOllamaCard').style.display = '';
+            $('apiOllamaModels').innerHTML = d.ollama_models.map(m => '<span class="api-model-tag">' + esc(m) + '</span>').join('');
+        } else {
+            $('apiOllamaCard').style.display = 'none';
+        }
+    } catch (e) {
+        $('apiInfoText').textContent = 'Nie udało się pobrać info: ' + e.message;
+    }
+}
+
+function showApiResult(ok, msg) {
+    const el = $('apiKeyResult');
+    el.className = 'api-result ' + (ok ? 'show-ok' : 'show-err');
+    el.textContent = msg;
+    setTimeout(() => { el.className = 'api-result'; }, 6000);
+}
+
+$('apiKeySave').onclick = async () => {
+    const key = $('apiKeyInput').value.trim();
+    if (!key) { showApiResult(false, 'Wpisz klucz API'); return; }
+    $('apiKeySave').disabled = true;
+    $('apiKeySave').textContent = 'Weryfikacja…';
+    try {
+        const r = await api('/api/mobile/apikey', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+            body: JSON.stringify({action:'set', api_key: key}),
+            _timeout: 25000
+        });
+        const d = await r.json();
+        showApiResult(d.ok, d.message || d.error);
+        if (d.ok) { $('apiKeyInput').value = ''; loadApiInfo(); }
+    } catch (e) { showApiResult(false, 'Błąd: ' + e.message); }
+    $('apiKeySave').disabled = false;
+    $('apiKeySave').textContent = 'Zapisz i zweryfikuj klucz';
+};
+
+$('apiKeyTest').onclick = async () => {
+    $('apiKeyTest').disabled = true;
+    $('apiKeyTest').textContent = 'Testowanie…';
+    try {
+        const r = await api('/api/mobile/apikey', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+            body: JSON.stringify({action:'test'}),
+            _timeout: 25000
+        });
+        const d = await r.json();
+        showApiResult(d.ok, d.message || d.error);
+    } catch (e) { showApiResult(false, 'Błąd: ' + e.message); }
+    $('apiKeyTest').disabled = false;
+    $('apiKeyTest').textContent = 'Testuj połączenie z Claude';
+};
+
+$('apiKeyRemove').onclick = async () => {
+    if (!confirm('Usunąć własny klucz API?')) return;
+    try {
+        const r = await api('/api/mobile/apikey', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+            body: JSON.stringify({action:'remove'}),
+            _timeout: 10000
+        });
+        const d = await r.json();
+        showApiResult(d.ok, d.message || d.error);
+        loadApiInfo();
+    } catch (e) { showApiResult(false, 'Błąd: ' + e.message); }
+};
+
+/* ═══ SETTINGS ═══ */
+$('btnSettings').onclick = () => {
+    try {
+        var b = localStorage.getItem('aia_api_base') || '';
+        if ($('sApiBase')) $('sApiBase').value = b;
+    } catch (e) {}
+    refreshPairingChrome();
+    $('settingsOvl').classList.add('on');
+};
+$('btnCloseSettings').onclick = () => $('settingsOvl').classList.remove('on');
+$('settingsOvl').onclick = e => { if (e.target.id === 'settingsOvl') $('settingsOvl').classList.remove('on'); };
+$('btnClear').onclick = () => { if (confirm('Wyczyścić historię?')) { msgs = []; localStorage.setItem('aia_msgs', '[]'); renderMsgs(); $('settingsOvl').classList.remove('on'); } };
+$('btnHardRefresh').onclick = async () => {
+    if (!confirm('Wyczyścić cache PWA i przeładować stronę? (pomaga gdy Safari pokazuje błąd lub starą wersję)')) return;
+    try {
+        if ('caches' in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => caches.delete(k)));
+        }
+        if ('serviceWorker' in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map(r => r.unregister()));
+        }
+    } catch (e) {}
+    window.location.href = window.location.pathname + window.location.search + (window.location.search ? '&' : '?') + '_=' + Date.now();
+};
+$('btnUnpair').onclick = () => { if (confirm('Odłączyć telefon?')) logout(); };
+$('selModel').onchange = e => { selModel = e.target.value; localStorage.setItem('aia_model', selModel); };
+$('selVoice').onchange = e => { selVoice = e.target.value; localStorage.setItem('aia_voice', selVoice); };
+$('selLang').onchange = e => { selLang = e.target.value; localStorage.setItem('aia_lang', selLang); if (recognition) recognition.lang = selLang; };
+
+function logout() {
+    localStorage.removeItem('aia_token');
+    localStorage.removeItem('aia_msgs');
+    token = null; msgs = [];
+    showScreen('pairScreen');
+    $('settingsOvl').classList.remove('on');
+    refreshPairingChrome();
+}
+
+/* ═══ SERVICE WORKER — wersja w URL wymusza pobranie nowego skryptu na iOS ═══ */
+if ('serviceWorker' in navigator) {
+    (function () {
+        var sb = window.__AIA_STATIC_BASE__ || '';
+        var swPath = sb + '/sw.js?v=' + APP_BUILD;
+        var scope = sb ? sb + '/' : '/';
+        navigator.serviceWorker.register(swPath, { updateViaCache: 'none', scope: scope }).then(function (reg) {
+            reg.update();
+        }).catch(function () {});
+    })();
+}
+</script>
+</body>
+</html>
