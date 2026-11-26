@@ -75,23 +75,23 @@ export function mapPlaceholder(address: string, city: string): string {
     <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
       <defs>
         <linearGradient id="mapGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#d9e0d6"/>
-          <stop offset="100%" stop-color="#c5cfc8"/>
+          <stop offset="0%" stop-color="#d5e4df"/>
+          <stop offset="100%" stop-color="#b7cbc4"/>
         </linearGradient>
         <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
-          <path d="M32 0H0V32" fill="none" stroke="#b7c2b8" stroke-width="1"/>
+          <path d="M32 0H0V32" fill="none" stroke="#9fb6ae" stroke-width="1"/>
         </pattern>
       </defs>
       <rect width="640" height="360" fill="url(#mapGrad)"/>
-      <rect width="640" height="360" fill="url(#grid)" opacity="0.55"/>
+      <rect width="640" height="360" fill="url(#grid)" opacity="0.45"/>
       <path d="M40 280 C120 220, 180 300, 260 240 S420 160, 520 210 S600 300, 620 260"
-            fill="none" stroke="#8fa090" stroke-width="10" stroke-linecap="round" opacity="0.5"/>
+            fill="none" stroke="#6f9087" stroke-width="10" stroke-linecap="round" opacity="0.55"/>
       <path d="M0 180 C80 160, 140 200, 220 170 S360 120, 440 150 S560 190, 640 160"
-            fill="none" stroke="#a8b5a9" stroke-width="6" stroke-linecap="round" opacity="0.7"/>
-      <circle cx="318" cy="168" r="18" fill="#1a1816"/>
-      <circle cx="318" cy="168" r="8" fill="#fbf9f7"/>
-      <rect x="170" y="292" width="300" height="44" rx="10" fill="#1a1816" opacity="0.88"/>
-      <text x="320" y="319" text-anchor="middle" fill="#fbf9f7" font-family="system-ui,sans-serif" font-size="14">${escapeHtml(city)}</text>
+            fill="none" stroke="#87a79e" stroke-width="6" stroke-linecap="round" opacity="0.75"/>
+      <circle cx="318" cy="168" r="18" fill="#1B4B46"/>
+      <circle cx="318" cy="168" r="8" fill="#F7FBF9"/>
+      <rect x="170" y="292" width="300" height="44" rx="10" fill="#123532" opacity="0.92"/>
+      <text x="320" y="319" text-anchor="middle" fill="#F7FBF9" font-family="system-ui,sans-serif" font-size="14">${escapeHtml(city)}</text>
     </svg>
   </div>`;
 }
@@ -132,7 +132,7 @@ a { color: inherit; text-decoration: none; }
   gap: 8px;
   min-height: 48px;
   padding: 0 22px;
-  border-radius: 999px;
+  border-radius: 10px;
   border: none;
   background: var(--accent);
   color: #fff;
@@ -142,8 +142,8 @@ a { color: inherit; text-decoration: none; }
 }
 .btn-ghost {
   background: transparent;
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.35);
+  color: var(--text);
+  border: 1.5px solid rgba(22,20,18,0.18);
 }
 .section {
   padding: 88px 0;
