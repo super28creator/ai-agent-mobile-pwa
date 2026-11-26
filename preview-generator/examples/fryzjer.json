@@ -1,0 +1,70 @@
+{
+  "name": "Studio Atelier Włosów",
+  "industry": "fryzjer",
+  "city": "Kraków",
+  "address": "ul. Przykładowa 12/3, 31-000 Kraków",
+  "phone": "+48 500 000 000",
+  "email": "kontakt@przyklad-atelier.pl",
+  "tagline": "Precyzja cięcia i koloru w spokojnej atmosferze",
+  "about": "Kameralny salon w centrum Krakowa. Pracujemy na produktach profesjonalnych, bez pośpiechu i bez przypadkowych efektów — każdy zabieg zaczynamy od krótkiej konsultacji.",
+  "hours": [
+    { "days": "Poniedziałek – Piątek", "hours": "9:00 – 19:00" },
+    { "days": "Sobota", "hours": "9:00 – 15:00" },
+    { "days": "Niedziela", "hours": "zamknięte" }
+  ],
+  "services": [
+    {
+      "name": "Strzyżenie damskie",
+      "price": "120 zł",
+      "duration": "45 min",
+      "description": "Mycie, strzyżenie i stylizacja"
+    },
+    {
+      "name": "Strzyżenie męskie",
+      "price": "80 zł",
+      "duration": "30 min",
+      "description": "Klasyczne lub nowoczesne cięcie"
+    },
+    {
+      "name": "Koloryzacja jednolita",
+      "price": "od 220 zł",
+      "duration": "90 min",
+      "description": "Dobór odcienia i pielęgnacja po zabiegu"
+    },
+    {
+      "name": "Baleyage / refleksy",
+      "price": "od 380 zł",
+      "duration": "2–3 h",
+      "description": "Naturalne przejścia koloru"
+    },
+    {
+      "name": "Regeneracja + pielęgnacja",
+      "price": "160 zł",
+      "duration": "60 min",
+      "description": "Kuracja odbudowująca i masaż skóry głowy"
+    },
+    {
+      "name": "Stylizacja okazjonalna",
+      "price": "140 zł",
+      "duration": "45 min",
+      "description": "Upięcie lub loki na wyjście"
+    }
+  ],
+  "reviews": [
+    {
+      "author": "Anna K.",
+      "rating": 5,
+      "text": "Wreszcie salon, w którym naprawdę słuchają. Baleyage wyszedł dokładnie tak, jak omawiałyśmy — miękko i naturalnie."
+    },
+    {
+      "author": "Marta W.",
+      "rating": 5,
+      "text": "Spokojna atmosfera, zero pośpiechu. Strzyżenie trzyma formę już drugi miesiąc. Polecam zwłaszcza na konsultację koloru."
+    },
+    {
+      "author": "Kasia P.",
+      "rating": 5,
+      "text": "Umówiłam się online, przyszłam punktualnie i wyszłam z włosami, które wyglądają jak po sesji — bez sztucznego połysku."
+    }
+  ]
+}

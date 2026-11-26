@@ -2,3 +2,7 @@ node_modules/
 .vercel/
 .env
 *.log
+.vercel
+preview-generator/node_modules/
+preview-generator/out/
+preview-generator/dist/
